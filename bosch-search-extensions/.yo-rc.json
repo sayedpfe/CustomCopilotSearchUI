@@ -1,0 +1,14 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "solutionName": "bosch-search-extensions",
+    "solutionShortDescription": "Custom search web parts for Bosch Enterprise Search",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionVersion": "1.0.0.0",
+    "componentType": "webpart",
+    "framework": "react",
+    "isDomainIsolated": false,
+    "isCreatingSolution": true,
+    "skipFeatureDeployment": true
+  }
+}

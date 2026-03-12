@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "c1d2e3f4-a5b6-7890-cdef-123456789002",
+  "alias": "AnnouncementsBannerWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "TeamsPersonalApp", "TeamsTab"],
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Bosch Search" },
+      "title": { "default": "Announcements Banner" },
+      "description": { "default": "Dismissible announcements sourced from a SharePoint list" },
+      "officeFabricIconFontName": "Megaphone",
+      "properties": {
+        "listName": "SearchAnnouncements",
+        "maxItems": 5,
+        "allowDismiss": true
+      }
+    }
+  ]
+}

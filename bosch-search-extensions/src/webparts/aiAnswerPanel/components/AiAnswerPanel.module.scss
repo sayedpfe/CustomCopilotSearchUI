@@ -1,0 +1,135 @@
+.aiPanel {
+  padding: 16px;
+  border: 1px solid #e1dfdd;
+  border-left: 4px solid #8764b8;
+  border-radius: 4px;
+  background: #faf9f8;
+  margin: 8px 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.aiIcon {
+  font-size: 20px;
+  color: #8764b8;
+}
+
+.headerTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #323130;
+}
+
+.copilotBadge {
+  font-size: 10px;
+  background: #8764b8;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+
+.answerText {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #323130;
+  white-space: pre-wrap;
+}
+
+.streamingCursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: #8764b8;
+  animation: blink 1s infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.citationsList {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edebe9;
+}
+
+.citationsTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #605e5c;
+  margin-bottom: 8px;
+}
+
+.citation {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.citationIndex {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8764b8;
+  min-width: 20px;
+}
+
+.citationLink {
+  font-size: 13px;
+  color: #0078d4;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.citationSnippet {
+  font-size: 11px;
+  color: #a19f9d;
+  margin-left: 28px;
+}
+
+.errorMessage {
+  color: #d83b01;
+  font-size: 13px;
+}
+
+.configWarning {
+  padding: 12px;
+  font-size: 13px;
+  color: #605e5c;
+  text-align: center;
+  font-style: italic;
+}
+
+.skeleton {
+  padding: 8px 0;
+}
+
+.skeletonLine {
+  height: 14px;
+  background: linear-gradient(90deg, #edebe9 25%, #f3f2f1 50%, #edebe9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 2px;
+  margin-bottom: 8px;
+
+  &:nth-child(1) { width: 100%; }
+  &:nth-child(2) { width: 85%; }
+  &:nth-child(3) { width: 70%; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

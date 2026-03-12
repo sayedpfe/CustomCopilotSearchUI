@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "c1d2e3f4-a5b6-7890-cdef-123456789006",
+  "alias": "AiAnswerPanelWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "TeamsPersonalApp", "TeamsTab"],
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Bosch Search" },
+      "title": { "default": "AI Answer Panel" },
+      "description": { "default": "AI-powered answers using Microsoft 365 Copilot APIs with Graph Search fallback" },
+      "officeFabricIconFontName": "Robot",
+      "properties": {
+        "groundingMode": "work",
+        "maxRetrievalResults": 10,
+        "showCopilotLink": true
+      }
+    }
+  ]
+}

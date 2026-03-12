@@ -1,0 +1,96 @@
+.dashboard {
+  padding: 16px 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #323130;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  padding: 16px;
+  border: 1px solid #edebe9;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0078d4;
+  display: block;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #605e5c;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #323130;
+  margin-bottom: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid #edebe9;
+  font-size: 13px;
+}
+
+.table th {
+  font-weight: 600;
+  color: #323130;
+  background: #faf9f8;
+}
+
+.table td {
+  color: #605e5c;
+}
+
+.barContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar {
+  height: 16px;
+  background: #0078d4;
+  border-radius: 2px;
+  min-width: 4px;
+}
+
+.zeroResultHighlight {
+  color: #d83b01;
+  font-weight: 600;
+}

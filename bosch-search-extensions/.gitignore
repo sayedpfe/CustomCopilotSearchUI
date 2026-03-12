@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+lib/
+dist/
+release/
+sharepoint/solution/*.sppkg
+sharepoint/solution/debug/
+temp/
+
+# IDE
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

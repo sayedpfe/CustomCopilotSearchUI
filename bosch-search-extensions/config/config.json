@@ -1,0 +1,82 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "quick-links-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/quickLinks/QuickLinksWebPart.js",
+          "manifest": "./src/webparts/quickLinks/QuickLinksWebPart.manifest.json"
+        }
+      ]
+    },
+    "announcements-banner-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/announcementsBanner/AnnouncementsBannerWebPart.js",
+          "manifest": "./src/webparts/announcementsBanner/AnnouncementsBannerWebPart.manifest.json"
+        }
+      ]
+    },
+    "sponsored-results-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/sponsoredResults/SponsoredResultsWebPart.js",
+          "manifest": "./src/webparts/sponsoredResults/SponsoredResultsWebPart.manifest.json"
+        }
+      ]
+    },
+    "people-search-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/peopleSearchEnrichment/PeopleSearchWebPart.js",
+          "manifest": "./src/webparts/peopleSearchEnrichment/PeopleSearchWebPart.manifest.json"
+        }
+      ]
+    },
+    "search-analytics-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/searchAnalytics/SearchAnalyticsWebPart.js",
+          "manifest": "./src/webparts/searchAnalytics/SearchAnalyticsWebPart.manifest.json"
+        }
+      ]
+    },
+    "ai-answer-panel-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/aiAnswerPanel/AiAnswerPanelWebPart.js",
+          "manifest": "./src/webparts/aiAnswerPanel/AiAnswerPanelWebPart.manifest.json"
+        }
+      ]
+    },
+    "chat-assistant-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/chatAssistant/ChatAssistantWebPart.js",
+          "manifest": "./src/webparts/chatAssistant/ChatAssistantWebPart.manifest.json"
+        }
+      ]
+    },
+    "bosch-search-app-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/boschSearchApp/BoschSearchAppWebPart.js",
+          "manifest": "./src/webparts/boschSearchApp/BoschSearchAppWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "BoschSearchAppWebPartStrings": "lib/webparts/boschSearchApp/loc/{locale}.js",
+    "QuickLinksWebPartStrings": "lib/webparts/quickLinks/loc/{locale}.js",
+    "AnnouncementsBannerWebPartStrings": "lib/webparts/announcementsBanner/loc/{locale}.js",
+    "SponsoredResultsWebPartStrings": "lib/webparts/sponsoredResults/loc/{locale}.js",
+    "PeopleSearchWebPartStrings": "lib/webparts/peopleSearchEnrichment/loc/{locale}.js",
+    "SearchAnalyticsWebPartStrings": "lib/webparts/searchAnalytics/loc/{locale}.js",
+    "AiAnswerPanelWebPartStrings": "lib/webparts/aiAnswerPanel/loc/{locale}.js",
+    "ChatAssistantWebPartStrings": "lib/webparts/chatAssistant/loc/{locale}.js",
+    "PropertyControlStrings": "node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js"
+  }
+}

@@ -1,0 +1,10 @@
+# Large binary files not suited for git
+*.pptx
+*.ppt
+*.mp4
+*.mov
+*.avi
+
+# OS
+.DS_Store
+Thumbs.db

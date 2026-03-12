@@ -1,0 +1,233 @@
+.chatTrigger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0078d4;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 1000;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  &:focus {
+    outline: 2px solid #0078d4;
+    outline-offset: 2px;
+  }
+}
+
+.triggerIcon {
+  font-size: 24px;
+}
+
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.inlineContainer {
+  border: 1px solid #edebe9;
+  border-radius: 4px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chatHeader {
+  padding: 16px;
+  background: #0078d4;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chatTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.copilotBadge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #6264a7;
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clearButton {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.messagesArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.welcomeMessage {
+  text-align: center;
+  color: #605e5c;
+  padding: 20px;
+  font-size: 14px;
+}
+
+.suggestedQuestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.suggestedButton {
+  font-size: 12px;
+  color: #0078d4;
+  background: #deecf9;
+  border: 1px solid #0078d4;
+  border-radius: 16px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #c7e0f4;
+  }
+}
+
+.messageBubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.userMessage {
+  align-self: flex-end;
+  background: #0078d4;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.assistantMessage {
+  align-self: flex-start;
+  background: #f3f2f1;
+  color: #323130;
+  border-bottom-left-radius: 4px;
+}
+
+.streamingCursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  background: #605e5c;
+  animation: blink 1s infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.messageCitations {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e1dfdd;
+}
+
+.citationLink {
+  font-size: 11px;
+  color: #0078d4;
+  text-decoration: none;
+  display: block;
+  padding: 2px 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.inputArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #edebe9;
+  background: white;
+}
+
+.inputField {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #c8c6c4;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+
+  &:focus {
+    border-color: #0078d4;
+  }
+}
+
+.sendButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0078d4;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #106ebe;
+  }
+
+  &:disabled {
+    background: #c8c6c4;
+    cursor: not-allowed;
+  }
+}
+
+.configWarning {
+  padding: 24px;
+  text-align: center;
+  color: #605e5c;
+  font-style: italic;
+}

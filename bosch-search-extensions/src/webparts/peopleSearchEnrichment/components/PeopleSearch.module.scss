@@ -1,0 +1,108 @@
+.peopleContainer {
+  padding: 8px 0;
+}
+
+.personCard {
+  border: 1px solid #edebe9;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.personHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.personInfo {
+  flex: 1;
+}
+
+.personName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #323130;
+  margin: 0;
+}
+
+.personTitle {
+  font-size: 13px;
+  color: #605e5c;
+  margin: 2px 0 0 0;
+}
+
+.personDepartment {
+  font-size: 12px;
+  color: #a19f9d;
+  margin: 2px 0 0 0;
+}
+
+.sectionHeader {
+  font-size: 12px;
+  font-weight: 600;
+  color: #323130;
+  text-transform: uppercase;
+  margin: 12px 0 8px 0;
+  border-top: 1px solid #edebe9;
+  padding-top: 8px;
+}
+
+.orgChartRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.orgLabel {
+  font-size: 11px;
+  color: #a19f9d;
+  min-width: 60px;
+}
+
+.docList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.docItem {
+  padding: 4px 0;
+}
+
+.docLink {
+  font-size: 13px;
+  color: #0078d4;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.docDate {
+  font-size: 11px;
+  color: #a19f9d;
+  margin-left: 8px;
+}
+
+.expandButton {
+  font-size: 12px;
+  color: #0078d4;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

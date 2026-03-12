@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "d1e2f3a4-b5c6-7890-abcd-ef1234567890",
+  "alias": "BoschSearchAppWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportsFullBleed": true,
+  "supportedHosts": ["SharePointWebPart", "TeamsPersonalApp", "TeamsTab"],
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Bosch Search" },
+      "title": { "default": "Bosch AI Search" },
+      "description": { "default": "Full-page Bosch AI Search experience with Copilot integration" },
+      "officeFabricIconFontName": "Search",
+      "properties": {
+        "groundingMode": "work",
+        "maxRetrievalResults": 10,
+        "showCopilotLink": true,
+        "newsSourceSiteUrl": "",
+        "promotedResultsListName": "SearchPromotedResults",
+        "announcementsListName": "SearchAnnouncements",
+        "analyticsListName": "SearchAnalyticsEvents"
+      }
+    }
+  ]
+}
