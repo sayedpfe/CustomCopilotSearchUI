@@ -70,23 +70,60 @@ export const ChatPanel: React.FC<IChatPanelProps> = ({
           setConversationId(currentConversationId);
         }
 
-        // Use sync /chat endpoint — SharePoint HTTP proxy buffers SSE streams entirely,
-        // so /chatOverStream gives no UX benefit and takes 8x longer to respond.
-        const result = await chatService.sendMessage(
-          currentConversationId,
-          text,
-          { enableWebGrounding: enableWeb }
-        );
-        if (abortRef.current) return;
-
-        const citations: IChatCitation[] = result.attributions
-          .filter((a) => a.url)
-          .map((attr) => ({ title: attr.title || 'Source', url: attr.url || '' }));
-
+        // Add a placeholder assistant bubble so the user sees typing start immediately
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', content: result.responseText, timestamp: new Date(), citations },
+          { role: 'assistant', content: '', timestamp: new Date(), citations: [] },
         ]);
+
+        await chatService.sendMessageStream(
+          currentConversationId,
+          text,
+          {
+            onChunk: (textSoFar) => {
+              if (abortRef.current) return;
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  content: textSoFar,
+                };
+                return updated;
+              });
+            },
+            onDone: (fullText, attributions) => {
+              if (abortRef.current) return;
+              const citations: IChatCitation[] = attributions
+                .filter((a) => a.url)
+                .map((attr) => ({ title: attr.title || 'Source', url: attr.url || '' }));
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  content: fullText,
+                  citations,
+                };
+                return updated;
+              });
+              setIsGenerating(false);
+            },
+            onError: (err) => {
+              if (abortRef.current) return;
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  content: `Error: ${err.message}`,
+                };
+                return updated;
+              });
+              setIsGenerating(false);
+            },
+          },
+          { enableWebGrounding: enableWeb }
+        );
+        // isGenerating is set to false inside onDone / onError callbacks above
+        return;
       } else {
         const searchService = new GraphSearchService(graphClient);
         const response = await searchService.search(text, ['externalItem', 'driveItem', 'listItem'], 0, 5);
@@ -121,6 +158,9 @@ export const ChatPanel: React.FC<IChatPanelProps> = ({
         ]);
       }
     } finally {
+      // Note: for the Copilot streaming path, isGenerating is already set to false
+      // inside onDone / onError callbacks above, and we return early. The finally
+      // here handles the non-Copilot (GraphSearch) fallback path.
       if (!abortRef.current) setIsGenerating(false);
     }
   };
@@ -188,10 +228,16 @@ export const ChatPanel: React.FC<IChatPanelProps> = ({
           </div>
         ))}
 
-        {isGenerating && !(messages.length > 0 && messages[messages.length - 1].role === 'assistant' && messages[messages.length - 1].content) && (
-          <div className={styles.chatBubbleAssistant}>
-            <Spinner label={hasCopilot ? 'Asking Copilot...' : 'Searching...'} />
-          </div>
+        {isGenerating && (
+          (() => {
+            const last = messages[messages.length - 1];
+            const awaitingFirstChunk = !last || last.role !== 'assistant' || !last.content;
+            return awaitingFirstChunk ? (
+              <div className={styles.chatBubbleAssistant}>
+                <Spinner label={hasCopilot ? 'Asking Copilot...' : 'Searching...'} />
+              </div>
+            ) : null;
+          })()
         )}
 
         <div ref={messagesEndRef} />
