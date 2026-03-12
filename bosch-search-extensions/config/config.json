@@ -65,6 +65,14 @@
           "manifest": "./src/webparts/boschSearchApp/BoschSearchAppWebPart.manifest.json"
         }
       ]
+    },
+    "copilot-diagnostics-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/copilotDiagnostics/CopilotDiagnosticsWebPart.js",
+          "manifest": "./src/webparts/copilotDiagnostics/CopilotDiagnosticsWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
@@ -77,6 +85,7 @@
     "SearchAnalyticsWebPartStrings": "lib/webparts/searchAnalytics/loc/{locale}.js",
     "AiAnswerPanelWebPartStrings": "lib/webparts/aiAnswerPanel/loc/{locale}.js",
     "ChatAssistantWebPartStrings": "lib/webparts/chatAssistant/loc/{locale}.js",
+    "CopilotDiagnosticsWebPartStrings": "lib/webparts/copilotDiagnostics/loc/{locale}.js",
     "PropertyControlStrings": "node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js"
   }
 }

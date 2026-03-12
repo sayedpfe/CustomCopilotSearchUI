@@ -1,0 +1,452 @@
+$schema-text-color: #323130;
+$text-secondary: #605e5c;
+$text-muted: #a19f9d;
+$blue: #0078d4;
+$blue-hover: #106ebe;
+$green: #107c10;
+$red: #a4262c;
+$border: #edebe9;
+$bg-subtle: #faf9f8;
+$bg-hover: #f3f2f1;
+
+.container {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  padding: 24px;
+  max-width: 960px;
+  color: $schema-text-color;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.headerIcon {
+  font-size: 30px;
+  color: $blue;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: $schema-text-color;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: $text-secondary;
+  margin: 0;
+
+  code {
+    background: #f3f2f1;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+  }
+}
+
+// ── Config row ────────────────────────────────────────────────────────────────
+.configRow {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.configField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.modeToggle {
+  display: flex;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.modeBtn {
+  padding: 8px 14px;
+  border: none;
+  border-right: 1px solid #d0d0d0;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  color: $schema-text-color;
+  transition: background 0.12s;
+
+  &:last-child { border-right: none; }
+  &:hover { background: $bg-hover; }
+}
+
+.modeBtnActive {
+  background: $blue;
+  color: #fff;
+  &:hover { background: $blue-hover; }
+}
+
+.select {
+  padding: 8px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: $schema-text-color;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+// ── Input row ─────────────────────────────────────────────────────────────────
+.inputRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.questionInput {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: $schema-text-color;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    border-color: $blue;
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.15);
+  }
+
+  &::placeholder { color: $text-muted; }
+  &:disabled { background: $bg-subtle; }
+}
+
+.runBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  background: $blue;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+
+  &:hover:not(:disabled) { background: $blue-hover; }
+  &:disabled { background: #c8c6c4; cursor: not-allowed; }
+}
+
+.btnSpinner {
+  :global(.ms-Spinner-circle) { border-top-color: #fff; }
+}
+
+// ── Tips box ──────────────────────────────────────────────────────────────────
+.tipsBox {
+  display: flex;
+  gap: 10px;
+  background: #eff6fc;
+  border: 1px solid #c7e0f4;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: $schema-text-color;
+
+  code {
+    background: #deedf9;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+  }
+}
+
+.tipsIcon {
+  color: $blue;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+// ── Results ───────────────────────────────────────────────────────────────────
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resultsTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.runCard {
+  border: 1px solid $border;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.runCardError {
+  border-color: #fde7e9;
+}
+
+.runHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: $bg-subtle;
+  user-select: none;
+
+  &:hover { background: $bg-hover; }
+}
+
+.runBadge {
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  color: #fff;
+}
+
+.runBadgeSync    { background: #5a5a8c; }
+.runBadgeStream  { background: #008272; }
+
+.runQuestion {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: $schema-text-color;
+}
+
+.runTime {
+  font-size: 12px;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+.runTotal {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: $schema-text-color;
+}
+
+.runTotalFast { color: $green; }
+
+.runSpinner { :global(.ms-Spinner-circle) { width: 14px; height: 14px; } }
+
+.chevron {
+  font-size: 12px;
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+.runDetail {
+  padding: 16px 20px;
+  border-top: 1px solid $border;
+}
+
+.errorBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fde7e9;
+  border: 1px solid #f1c2c4;
+  border-radius: 5px;
+  font-size: 13px;
+  color: $red;
+  margin-bottom: 14px;
+  word-break: break-word;
+}
+
+// Timing table
+.timingTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary;
+    padding: 4px 10px 8px;
+    border-bottom: 2px solid $border;
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #f3f2f1;
+    vertical-align: middle;
+  }
+
+  td:first-child {
+    color: $text-secondary;
+    width: 220px;
+  }
+}
+
+.timingValue {
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: $blue;
+  width: 90px;
+  white-space: nowrap;
+}
+
+.timingValueHighlight {
+  color: $green;
+}
+
+.timingKey {
+  font-size: 11px;
+  font-weight: 400;
+  color: $text-muted;
+}
+
+.timingNote {
+  font-size: 12px;
+  color: $text-muted;
+}
+
+.timingRowTotal {
+  td {
+    border-top: 2px solid $border;
+    font-weight: 600;
+    color: $schema-text-color;
+  }
+}
+
+// ── SSE chunk analysis ────────────────────────────────────────────────────────
+.chunkSection {
+  margin-bottom: 16px;
+}
+
+.chunkHeader {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.chunkCount {
+  font-weight: 400;
+  color: $text-secondary;
+}
+
+.chunkWaiting {
+  font-size: 13px;
+  color: $text-muted;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.diagnosis {
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.diagnosisGood {
+  background: #dff6dd;
+  border: 1px solid #9fd89f;
+  color: #1e5f1e;
+}
+
+.diagnosisBad {
+  background: #fde7e9;
+  border: 1px solid #f1c2c4;
+  color: $red;
+}
+
+.chunkTimeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chunkPill {
+  display: inline-block;
+  padding: 3px 8px;
+  background: #eff6fc;
+  border: 1px solid #c7e0f4;
+  border-radius: 12px;
+  font-size: 11px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  color: $blue;
+  cursor: help;
+}
+
+.chunkPillMore {
+  font-size: 11px;
+  color: $text-muted;
+  padding: 3px 6px;
+  align-self: center;
+}
+
+// ── Response section ──────────────────────────────────────────────────────────
+.responseSection {
+  border-top: 1px solid $border;
+  padding-top: 14px;
+}
+
+.responseSectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: $text-secondary;
+  margin-bottom: 8px;
+}
+
+.responseText {
+  font-size: 13px;
+  line-height: 1.6;
+  color: $schema-text-color;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow-y: auto;
+  background: $bg-subtle;
+  padding: 10px 14px;
+  border-radius: 5px;
+  border: 1px solid $border;
+}

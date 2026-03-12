@@ -4,7 +4,7 @@ import { Panel, PanelType } from '@fluentui/react/lib/Panel';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Spinner } from '@fluentui/react/lib/Spinner';
 import { MSGraphClientV3 } from '@microsoft/sp-http';
-import { CopilotChatService, ICopilotAttribution } from '../../../services/CopilotChatService';
+import { CopilotChatService } from '../../../services/CopilotChatService';
 import { GraphSearchService } from '../../../services/GraphSearchService';
 import { IChatMessage, IChatCitation } from '../../../models';
 import { markdownToHtml } from '../../../common/Utils';
@@ -70,58 +70,23 @@ export const ChatPanel: React.FC<IChatPanelProps> = ({
           setConversationId(currentConversationId);
         }
 
-        // Add a placeholder assistant message that we'll update with stream chunks
-        const placeholderIndex = messages.length + 1; // +1 for the user message we just added
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: '', timestamp: new Date() },
-        ]);
-
-        await chatService.sendMessageStream(
+        // Use sync /chat endpoint — SharePoint HTTP proxy buffers SSE streams entirely,
+        // so /chatOverStream gives no UX benefit and takes 8x longer to respond.
+        const result = await chatService.sendMessage(
           currentConversationId,
           text,
-          {
-            onChunk: (textSoFar: string) => {
-              if (abortRef.current) return;
-              // Update the last (assistant) message in-place
-              setMessages((prev) => {
-                const updated = [...prev];
-                const last = updated[updated.length - 1];
-                if (last && last.role === 'assistant') {
-                  updated[updated.length - 1] = { ...last, content: textSoFar };
-                }
-                return updated;
-              });
-            },
-            onDone: (fullText: string, attributions: ICopilotAttribution[]) => {
-              if (abortRef.current) return;
-              const citations: IChatCitation[] = attributions
-                .filter((a) => a.url)
-                .map((attr) => ({ title: attr.title || 'Source', url: attr.url || '' }));
-              setMessages((prev) => {
-                const updated = [...prev];
-                const last = updated[updated.length - 1];
-                if (last && last.role === 'assistant') {
-                  updated[updated.length - 1] = { ...last, content: fullText, citations };
-                }
-                return updated;
-              });
-            },
-            onError: (err: Error) => {
-              if (!abortRef.current) {
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  const last = updated[updated.length - 1];
-                  if (last && last.role === 'assistant') {
-                    updated[updated.length - 1] = { ...last, content: `Error: ${err.message}` };
-                  }
-                  return updated;
-                });
-              }
-            },
-          },
           { enableWebGrounding: enableWeb }
         );
+        if (abortRef.current) return;
+
+        const citations: IChatCitation[] = result.attributions
+          .filter((a) => a.url)
+          .map((attr) => ({ title: attr.title || 'Source', url: attr.url || '' }));
+
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: result.responseText, timestamp: new Date(), citations },
+        ]);
       } else {
         const searchService = new GraphSearchService(graphClient);
         const response = await searchService.search(text, ['externalItem', 'driveItem', 'listItem'], 0, 5);

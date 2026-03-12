@@ -10,7 +10,7 @@ import { CopilotRetrievalService } from '../../../services/CopilotRetrievalServi
 import { CopilotSearchService } from '../../../services/CopilotSearchService';
 import { GraphSearchService } from '../../../services/GraphSearchService';
 import { SharePointListService } from '../../../services/SharePointListService';
-import { ISearchResult, IPromotedResult, ICitation } from '../../../models';
+import { ISearchResult, IPromotedResult, ICitation, ISpellingSuggestion } from '../../../models';
 import { M365_COPILOT_SEARCH_URL } from '../../../common/Constants';
 import { markdownToHtml, stripHtmlTags } from '../../../common/Utils';
 import { SearchBox } from './SearchBox';
@@ -62,6 +62,11 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
   const [aiExpanded, setAiExpanded] = useState(false);
   const [activeSourceFilter, setActiveSourceFilter] = useState<string>('All');
   const [sourceCountsFromApi, setSourceCountsFromApi] = useState<Record<string, number>>({});
+  const [filteredApiResults, setFilteredApiResults] = useState<ISearchResult[]>([]);
+  const [filteredApiTotal, setFilteredApiTotal] = useState(0);
+  const [filteredPage, setFilteredPage] = useState(1);
+  const [filteredLoading, setFilteredLoading] = useState(false);
+  const [spellingSuggestion, setSpellingSuggestion] = useState<ISpellingSuggestion | null>(null);
   const abortRef = useRef(false);
 
   const PAGE_SIZE = 10;
@@ -88,10 +93,10 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
     return known.concat(custom);
   }, [sourceCounts]);
 
-  const filteredResults = React.useMemo(() => {
+  const displayedResults = React.useMemo(() => {
     if (activeSourceFilter === 'All') return results;
-    return results.filter((r) => (r.source || 'Other') === activeSourceFilter);
-  }, [results, activeSourceFilter]);
+    return filteredApiResults;
+  }, [results, activeSourceFilter, filteredApiResults]);
 
   // Map source names to Fluent icons
   const getSourceIcon = (src: string): string => {
@@ -104,7 +109,9 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
     return 'Database';
   };
 
-  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const totalPages = activeSourceFilter === 'All'
+    ? Math.max(1, Math.ceil(totalResults / PAGE_SIZE))
+    : Math.max(1, Math.ceil(filteredApiTotal / PAGE_SIZE));
 
   // Fetch results when query changes
   useEffect(() => {
@@ -112,6 +119,10 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
     abortRef.current = true;
     setCurrentPage(1);
     setActiveSourceFilter('All');
+    setFilteredPage(1);
+    setFilteredApiResults([]);
+    setFilteredApiTotal(0);
+    setSpellingSuggestion(null);
 
     const run = async (): Promise<void> => {
       abortRef.current = false;
@@ -120,6 +131,14 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
         fetchSearchResults(0),
         fetchPromotedResults(),
       ]);
+      // Spell check runs in parallel as a lightweight background call.
+      // Uses the Graph Search queryAlterationOptions feature — no extra license needed.
+      if (!abortRef.current && graphClient) {
+        const graphSearch = new GraphSearchService(graphClient);
+        graphSearch.checkSpelling(query)
+          .then((suggestion) => { if (!abortRef.current) setSpellingSuggestion(suggestion); })
+          .catch(() => { /* ignore — spell check is best-effort */ });
+      }
     };
     run();
 
@@ -131,6 +150,14 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
     if (!query || currentPage === 1) return;
     fetchSearchResults((currentPage - 1) * PAGE_SIZE);
   }, [currentPage]);
+
+  // Fetch source-filtered results when filter or filter-page changes
+  // (query is intentionally omitted: query change resets activeSourceFilter='All')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!query || activeSourceFilter === 'All') return;
+    void fetchSourceResults(activeSourceFilter, (filteredPage - 1) * PAGE_SIZE);
+  }, [activeSourceFilter, filteredPage]);
 
   const fetchAiAnswer = async (): Promise<void> => {
     setAiLoading(true);
@@ -260,6 +287,21 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
     }
   };
 
+  const fetchSourceResults = async (source: string, from: number): Promise<void> => {
+    setFilteredLoading(true);
+    try {
+      const graphSearch = new GraphSearchService(graphClient);
+      const response = await graphSearch.searchBySource(query, source, from, PAGE_SIZE);
+      if (abortRef.current) return;
+      setFilteredApiResults(response.results);
+      setFilteredApiTotal(response.totalResults);
+    } catch (err) {
+      if (!abortRef.current) console.error('[SearchResults] Source filter search error:', err);
+    } finally {
+      if (!abortRef.current) setFilteredLoading(false);
+    }
+  };
+
   const fetchSearchResults = async (from: number = 0): Promise<void> => {
     setResultsLoading(true);
     try {
@@ -334,6 +376,7 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
           onSearch={onSearch}
           variant="results"
           hasCopilot={hasCopilot}
+          context={context}
         />
       </div>
 
@@ -358,6 +401,35 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
                   <div className={styles.promotedUrl}>{pr.url}</div>
                 </a>
               ))}
+            </div>
+          )}
+
+          {/* Spell correction banner */}
+          {spellingSuggestion && !resultsLoading && (
+            <div className={styles.spellBanner}>
+              {spellingSuggestion.type === 'Modification' ? (
+                <>
+                  Showing results for <strong>{spellingSuggestion.alteredQuery}</strong>.{' '}
+                  Search instead for{' '}
+                  <button
+                    className={styles.spellBannerLink}
+                    onClick={() => onSearch(spellingSuggestion.originalQuery)}
+                  >
+                    {spellingSuggestion.originalQuery}
+                  </button>
+                </>
+              ) : (
+                <>
+                  Did you mean{' '}
+                  <button
+                    className={styles.spellBannerLink}
+                    onClick={() => onSearch(spellingSuggestion.alteredQuery)}
+                  >
+                    {spellingSuggestion.alteredQuery}
+                  </button>
+                  ?
+                </>
+              )}
             </div>
           )}
 
@@ -438,20 +510,20 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
           </div>
 
           {/* Search Results + Sidebar layout */}
-          {(resultsLoading || results.length > 0) && (
+          {(resultsLoading || filteredLoading || results.length > 0) && (
             <div className={styles.resultsWithSidebar}>
               {/* Results list — left side */}
               <div className={styles.resultsList}>
-                {resultsLoading && <Spinner label="Loading results..." />}
+                {(resultsLoading || filteredLoading) && <Spinner label="Loading results..." />}
 
-                {!resultsLoading && results.length > 0 && (
+                {!(resultsLoading || filteredLoading) && displayedResults.length > 0 && (
                   <>
                     <div className={styles.resultsCount}>
                       {activeSourceFilter === 'All'
                         ? `About ${totalResults.toLocaleString()} results`
-                        : `${(sourceCounts[activeSourceFilter] || filteredResults.length).toLocaleString()} ${activeSourceFilter} results`}
+                        : `${(filteredApiTotal || sourceCounts[activeSourceFilter] || 0).toLocaleString()} ${activeSourceFilter} results`}
                     </div>
-                    {filteredResults.map((result, i) => (
+                    {displayedResults.map((result, i) => (
                       <div key={i} className={styles.resultItem}>
                         <div className={styles.resultMeta}>
                           <span className={styles.resultSourceBadge}>
@@ -491,7 +563,7 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
                   </div>
                   <button
                     className={`${styles.sourceFilterItem} ${activeSourceFilter === 'All' ? styles.sourceFilterItemActive : ''}`}
-                    onClick={() => setActiveSourceFilter('All')}
+                    onClick={() => { setActiveSourceFilter('All'); setFilteredPage(1); setFilteredApiResults([]); setFilteredApiTotal(0); }}
                   >
                     <Icon iconName="Search" className={styles.sourceFilterItemIcon} />
                     <span className={styles.sourceFilterItemLabel}>All Results</span>
@@ -501,7 +573,7 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
                     <button
                       key={src}
                       className={`${styles.sourceFilterItem} ${activeSourceFilter === src ? styles.sourceFilterItemActive : ''}`}
-                      onClick={() => setActiveSourceFilter(src)}
+                      onClick={() => { setActiveSourceFilter(src); setFilteredPage(1); setFilteredApiResults([]); setFilteredApiTotal(0); }}
                     >
                       <Icon iconName={getSourceIcon(src)} className={styles.sourceFilterItemIcon} />
                       <span className={styles.sourceFilterItemLabel}>{src}</span>
@@ -513,29 +585,33 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
             </div>
           )}
 
-          {!resultsLoading && results.length === 0 && !aiLoading && (
+          {!(resultsLoading || filteredLoading) && displayedResults.length === 0 && !aiLoading && (
             <div className={styles.noResults}>
               No results found for &quot;{query}&quot;. Try different keywords.
             </div>
           )}
 
           {/* Pagination */}
-          {!resultsLoading && totalPages > 1 && (
+          {!(resultsLoading || filteredLoading) && totalPages > 1 && (
             <div className={styles.pagination}>
               <button
                 className={styles.paginationButton}
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={(activeSourceFilter === 'All' ? currentPage : filteredPage) <= 1}
+                onClick={() => activeSourceFilter === 'All'
+                  ? setCurrentPage((p) => Math.max(1, p - 1))
+                  : setFilteredPage((p) => Math.max(1, p - 1))}
               >
                 <Icon iconName="ChevronLeft" /> Previous
               </button>
               <span className={styles.paginationInfo}>
-                Page {currentPage} of {totalPages}
+                Page {activeSourceFilter === 'All' ? currentPage : filteredPage} of {totalPages}
               </span>
               <button
                 className={styles.paginationButton}
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={(activeSourceFilter === 'All' ? currentPage : filteredPage) >= totalPages}
+                onClick={() => activeSourceFilter === 'All'
+                  ? setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  : setFilteredPage((p) => Math.min(totalPages, p + 1))}
               >
                 Next <Icon iconName="ChevronRight" />
               </button>

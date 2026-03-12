@@ -1,5 +1,5 @@
 import { MSGraphClientV3 } from '@microsoft/sp-http';
-import { ISearchResult, ISearchResponse } from '../models';
+import { ISearchResult, ISearchResponse, ISpellingSuggestion } from '../models';
 import { SimpleCache } from '../common/Utils';
 
 const CACHE_TTL_MS = 60 * 1000; // 1 minute
@@ -119,6 +119,121 @@ export class GraphSearchService {
   public async searchExternalItems(query: string, size: number = 10): Promise<ISearchResult[]> {
     const response = await this.search(query, ['externalItem'], 0, size);
     return response.results;
+  }
+
+  /**
+   * Search within a specific M365 source for source-specific paginated results.
+   * Routes SharePoint / Outlook Mail / Teams to entity-type searches,
+   * and external connector names to contentSources-filtered externalItem searches.
+   *
+   * @param source  Source name matching the sidebar label (e.g. "SharePoint", "CustomConnector1")
+   */
+  public async searchBySource(
+    query: string,
+    source: string,
+    from: number = 0,
+    size: number = 25
+  ): Promise<ISearchResponse> {
+    if (!query || query.trim() === '') {
+      return { results: [], totalResults: 0, moreResultsAvailable: false };
+    }
+
+    let entityTypes: string[];
+    let contentSources: string[] | undefined;
+
+    switch (source) {
+      case 'SharePoint':
+        entityTypes = ['driveItem', 'listItem', 'site'];
+        break;
+      case 'Outlook Mail':
+        entityTypes = ['message'];
+        break;
+      case 'Teams':
+        entityTypes = ['chatMessage'];
+        break;
+      default:
+        // External connector — source label is the connection ID
+        entityTypes = ['externalItem'];
+        contentSources = [`/external/connections/${source}`];
+        break;
+    }
+
+    const requestBody: Record<string, unknown> = {
+      entityTypes,
+      query: { queryString: query },
+      from,
+      size,
+      fields: ['title', 'name', 'summary', 'url', 'webUrl', 'contentSource', 'fileType', 'lastModifiedDateTime', 'createdBy'],
+    };
+    if (contentSources) requestBody.contentSources = contentSources;
+
+    const request = { requests: [requestBody] };
+    console.log(`[GraphSearchService] searchBySource [${source}] from=${from}`, JSON.stringify(request));
+
+    const response = await this.graphClient.api('/search/query').post(request);
+    const container = response.value?.[0]?.hitsContainers?.[0];
+    if (!container?.hits) {
+      return { results: [], totalResults: 0, moreResultsAvailable: false };
+    }
+
+    const hits = container.hits as Record<string, unknown>[];
+    const results: ISearchResult[] = hits.map((hit) => {
+      const resource = (hit.resource || {}) as Record<string, unknown>;
+      const properties = (resource.properties || {}) as Record<string, string>;
+      const odataType = (resource['@odata.type'] as string) || '';
+
+      // Source label — default to requested source, normalize connector URIs
+      let sourceLabel = source;
+      if (odataType.includes('message')) sourceLabel = 'Outlook Mail';
+      else if (odataType.includes('chatMessage')) sourceLabel = 'Teams';
+      else if (odataType.includes('externalItem')) {
+        const rawSource =
+          properties.contentSource || properties.ContentSource ||
+          (hit.contentSource as string) || source;
+        sourceLabel = rawSource.includes('/external/connections/')
+          ? rawSource.split('/').filter(Boolean).pop() || source
+          : rawSource;
+      }
+
+      const listItem = resource.listItem as Record<string, unknown> | undefined;
+      const listItemFields = (listItem?.fields || {}) as Record<string, string>;
+      const title =
+        (resource.subject as string) ||
+        properties.title || properties.Title ||
+        (resource.name as string) || properties.name || properties.Name ||
+        (resource.displayName as string) || properties.displayName || properties.DisplayName ||
+        listItemFields.title || listItemFields.Title ||
+        'Untitled';
+
+      const parentRef = resource.parentReference as Record<string, string> | undefined;
+      const resolvedUrl =
+        (resource.webUrl as string) ||
+        (resource.webLink as string) ||
+        properties.url || properties.Url || properties.URL ||
+        properties.webUrl || properties.WebUrl ||
+        properties.link || properties.Link ||
+        (listItem?.webUrl as string) ||
+        (parentRef?.siteUrl ? `${parentRef.siteUrl}/${resource.name || ''}` : '') ||
+        '#';
+
+      return {
+        id: (resource.id as string) || '',
+        title,
+        summary: (hit.summary as string) || properties.summary || '',
+        url: resolvedUrl,
+        source: sourceLabel,
+        fileType: properties.fileType || (odataType.includes('message') ? 'email' : undefined),
+        lastModified: properties.lastModifiedDateTime || (resource.lastModifiedDateTime as string),
+        author: properties.createdBy,
+        hitHighlightedSummary: (hit.summary as string) || '',
+      } as ISearchResult;
+    });
+
+    return {
+      results,
+      totalResults: container.total || 0,
+      moreResultsAvailable: container.moreResultsAvailable || false,
+    };
   }
 
   /**
@@ -371,5 +486,48 @@ export class GraphSearchService {
     };
     this.cache.set(cacheKey, searchResponse, CACHE_TTL_MS);
     return searchResponse;
+  }
+
+  /**
+   * Checks the given query for spelling errors using the Graph Search
+   * `queryAlterationOptions` feature.
+   *
+   * - enableSuggestion: suggests a corrected term when typos are detected.
+   * - enableModification: if no results for the original query, the API
+   *   automatically searches the corrected term and returns those results.
+   *
+   * Supported types: listItem, driveItem, site, message, event, externalItem.
+   * NOT supported: chatMessage, person.
+   *
+   * Returns null if the query needs no correction or if the call fails.
+   */
+  public async checkSpelling(query: string): Promise<ISpellingSuggestion | null> {
+    if (!query || query.trim().length < 3) return null;
+    try {
+      const request = {
+        requests: [{
+          entityTypes: ['listItem'],
+          query: { queryString: query },
+          from: 0,
+          size: 1,
+          queryAlterationOptions: {
+            enableSuggestion: true,
+            enableModification: true,
+          },
+        }],
+      };
+      const response = await this.graphClient.api('/search/query').post(request);
+      const alteration = response.value?.[0]?.queryAlterationResponse;
+      if (!alteration?.queryAlteration?.alteredQueryString) return null;
+      const alteredQuery = (alteration.queryAlteration.alteredQueryString as string).trim();
+      if (alteredQuery.toLowerCase() === query.toLowerCase().trim()) return null;
+      return {
+        originalQuery: query.trim(),
+        alteredQuery,
+        type: alteration.queryAlterationType === 'Modification' ? 'Modification' : 'Suggestion',
+      };
+    } catch {
+      return null;
+    }
   }
 }

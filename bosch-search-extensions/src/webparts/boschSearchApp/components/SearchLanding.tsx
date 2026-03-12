@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { MSGraphClientV3 } from '@microsoft/sp-http';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { SearchBox } from './SearchBox';
 import { NewsCarousel } from './NewsCarousel';
 import styles from './BoschSearchApp.module.scss';
@@ -14,6 +15,8 @@ export interface ISearchLandingProps {
   newsSourceSiteUrl: string;
   hasCopilot: boolean | null;
   backgroundImageUrl?: string;
+  /** Pass context to enable autocomplete in the landing search box. */
+  context?: WebPartContext;
 }
 
 export const SearchLanding: React.FC<ISearchLandingProps> = ({
@@ -24,6 +27,7 @@ export const SearchLanding: React.FC<ISearchLandingProps> = ({
   newsSourceSiteUrl,
   hasCopilot,
   backgroundImageUrl,
+  context,
 }) => {
   const containerClass = backgroundImageUrl
     ? `${styles.landingContainer} ${styles.landingContainerWithBackground}`
@@ -45,6 +49,7 @@ export const SearchLanding: React.FC<ISearchLandingProps> = ({
           onSearch={onSearch}
           variant="landing"
           hasCopilot={hasCopilot}
+          context={context}
         />
       </div>
 

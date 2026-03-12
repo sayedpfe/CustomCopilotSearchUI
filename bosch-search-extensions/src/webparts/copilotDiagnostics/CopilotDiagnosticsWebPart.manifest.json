@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "a8f3e21d-b47c-4d90-8e5f-2c1a036b7d4e",
+  "alias": "CopilotDiagnosticsWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart"],
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Bosch Search" },
+      "title": { "default": "Copilot Chat Diagnostics" },
+      "description": { "default": "Benchmark and compare /chat (sync) vs /chatOverStream (SSE) endpoint performance. Detects SSE buffering and measures TTFT." },
+      "officeFabricIconFontName": "SpeedHigh",
+      "properties": {
+        "endpointMode": "chatOverStream",
+        "groundingMode": "work",
+        "defaultQuestion": "What are the key company priorities for this year?"
+      }
+    }
+  ]
+}

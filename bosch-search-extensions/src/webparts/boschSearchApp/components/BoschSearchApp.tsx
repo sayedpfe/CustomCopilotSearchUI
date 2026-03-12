@@ -125,6 +125,7 @@ export const BoschSearchApp: React.FC<IBoschSearchAppProps> = (props) => {
             newsSourceSiteUrl={newsSourceSiteUrl}
             hasCopilot={hasCopilot}
             backgroundImageUrl={backgroundImageUrl}
+            context={context}
           />
         )}
 

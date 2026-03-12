@@ -24,7 +24,7 @@ The **Bosch AI Search** full-page web part requires a **Communication Site** (no
 1. Go to SharePoint Admin Center > **Sites** > **Active sites** > **Create**
 2. Choose **Communication site**
 3. Name: `Bosch AI Search` (or your preferred name)
-4. URL: e.g., `https://m365cpi90282478.sharepoint.com/sites/BoschSearch`
+4. URL: e.g., `https://m365cpi90282478.sharepoint.com/sites/BoschAISearch`
 
 **Option B — Use an existing Communication Site:**
 - If you already have a Communication Site at `/sites/Bosch`, you can use it directly
@@ -402,3 +402,5 @@ Add web parts from the toolbox in the workbench to test individually. Note that 
 - [ ] Promoted results appear for matching keywords
 - [ ] News carousel loads content
 - [ ] Chat panel opens and works (Copilot users)
+
+.\Deploy-SearchPage.ps1 -SiteUrl "https://m365cpi90282478.sharepoint.com/sites/BoschAISearch" -ClientId "14603fc7-543c-4dad-b17a-81de8aac9600" -SetAsHomePage

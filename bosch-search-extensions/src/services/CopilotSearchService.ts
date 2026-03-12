@@ -75,10 +75,11 @@ export class CopilotSearchService {
       hitsContainer?.hits ||
       (Array.isArray(response.hits) ? response.hits : null) ||
       [];
-    const totalResults: number =
+    let totalResults: number =
       hitsContainer?.total ??
       response.total ??
       response.totalCount ??
+      (response['@odata.count'] as number | undefined) ??
       hits.length;
     const moreResultsAvailable: boolean =
       hitsContainer?.moreResultsAvailable ??
@@ -96,15 +97,19 @@ export class CopilotSearchService {
       else if (odataType.includes('chatMessage')) sourceLabel = 'Teams';
       else if (odataType.includes('copilotChat') || odataType.includes('AiChat')) sourceLabel = 'M365 Copilot Chats';
       else if (odataType.includes('externalItem')) {
-        // Graph Connector items — connector name in properties (case-insensitive check)
-        sourceLabel =
+        // Connector hit — contentSource may be a full URI like "/external/connections/ConnectorId"
+        const rawSource =
           properties.contentSource ||
           properties.ContentSource ||
           (resource.contentSource as string) ||
           (resource['@search.contentSource'] as string) ||
           (hit.contentSource as string) ||
           (hit['@search.contentSource'] as string) ||
-          'External';
+          '';
+        // Normalize: extract connector ID from paths like "/external/connections/ConnectorId"
+        sourceLabel = rawSource
+          ? rawSource.split('/').filter(Boolean).pop() || rawSource
+          : 'External';
       }
       // 'site' odataType = SharePoint site — label as SharePoint (not 'Other Sites')
       else if (resource.contentSource) sourceLabel = resource.contentSource as string;
@@ -161,11 +166,17 @@ export class CopilotSearchService {
       response.aggregations?.[0]?.buckets ||
       []
     ) as Record<string, unknown>[];
+    const aggTotal = aggBuckets.reduce((sum, b) => sum + (Number(b.count) || 0), 0);
+    // Override totalResults if we only had hits.length as fallback and aggBuckets sum is larger
+    if (totalResults <= hits.length && aggTotal > hits.length) totalResults = aggTotal;
     aggBuckets.forEach((bucket) => {
       if (!bucket.key) return;
+      let key = bucket.key as string;
+      // Normalize full URI paths like "/external/connections/ConnectorId" → "ConnectorId"
+      if (key.includes('/')) key = key.split('/').filter(Boolean).pop() || key;
       // Merge 'Other Sites' into 'SharePoint'
-      const key = (bucket.key as string) === 'Other Sites' ? 'SharePoint' : (bucket.key as string);
-      sourceCounts[key] = (sourceCounts[key] || 0) + (bucket.count as number);
+      if (key === 'Other Sites') key = 'SharePoint';
+      sourceCounts[key] = (sourceCounts[key] || 0) + (Number(bucket.count) || 0);
     });
 
     // Fall back to proportional counts when no aggregation data
