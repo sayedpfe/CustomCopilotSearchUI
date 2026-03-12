@@ -40,25 +40,24 @@ export class SearchSuggestService {
       const response = await this.context.spHttpClient.get(
         url,
         SPHttpClient.configurations.v1,
-        { headers: { Accept: 'application/json;odata=nometadata' } }
+        { headers: { Accept: 'application/json;odata=verbose' } }
       );
       if (!response.ok) return [];
 
       const data = await response.json() as Record<string, unknown>;
 
-      // With odata=nometadata, the response is: { "Queries": [{ "Query": "..." }, ...] }
-      // Fallback verbose format: data.d.suggest.Queries.results (older SP REST style)
+      // Verbose format (odata=verbose): { d: { suggest: { Queries: { results: [{Query}] } } } }
+      // Fallback nometadata format: { Queries: [{Query}] }
       let rawQueries: Array<{ Query: string }> = [];
-      const direct = data?.Queries;
-      if (Array.isArray(direct)) {
-        rawQueries = direct as Array<{ Query: string }>;
+      const d = data?.d as Record<string, unknown> | undefined;
+      const suggest = d?.suggest as Record<string, unknown> | undefined;
+      const q = suggest?.Queries as Record<string, unknown> | undefined;
+      const results = q?.results;
+      if (Array.isArray(results)) {
+        rawQueries = results as Array<{ Query: string }>;
       } else {
-        // Safely traverse verbose format without complex generics
-        const d = data?.d as Record<string, unknown> | undefined;
-        const suggest = d?.suggest as Record<string, unknown> | undefined;
-        const q = suggest?.Queries as Record<string, unknown> | undefined;
-        const results = q?.results;
-        if (Array.isArray(results)) rawQueries = results as Array<{ Query: string }>;
+        const direct = data?.Queries;
+        if (Array.isArray(direct)) rawQueries = direct as Array<{ Query: string }>;
       }
 
       return rawQueries
