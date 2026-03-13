@@ -90,23 +90,27 @@ export class SearchSuggestService {
       const response = await this.context.spHttpClient.get(
         url,
         SPHttpClient.configurations.v1,
-        { headers: { Accept: 'application/json;odata=nometadata' } }
+        { headers: { Accept: 'application/json;odata=verbose' } }
       );
       if (!response.ok) return [];
 
       const data = await response.json() as Record<string, unknown>;
 
-      // nometadata: { PrimaryQueryResult: { RelevantResults: { Table: { Rows: [{ Cells: [...] }] } } } }
-      const primary = data?.PrimaryQueryResult as Record<string, unknown> | undefined;
+      // verbose: { d: { query: { PrimaryQueryResult: { RelevantResults: { Table: { Rows: { results: [{ Cells: { results: [...] } }] } } } } } } }
+      const d = data?.d as Record<string, unknown> | undefined;
+      const queryObj = d?.query as Record<string, unknown> | undefined;
+      const primary = queryObj?.PrimaryQueryResult as Record<string, unknown> | undefined;
       const relevant = primary?.RelevantResults as Record<string, unknown> | undefined;
       const table = relevant?.Table as Record<string, unknown> | undefined;
-      const rows = table?.Rows;
+      const rowsObj = table?.Rows as Record<string, unknown> | undefined;
+      const rows = rowsObj?.results;
 
       if (!Array.isArray(rows)) return [];
 
       const titles: string[] = [];
       for (const row of rows as Array<Record<string, unknown>>) {
-        const cells = row?.Cells;
+        const cellsObj = row?.Cells as Record<string, unknown> | undefined;
+        const cells = cellsObj?.results;
         if (!Array.isArray(cells)) continue;
         const titleCell = (cells as Array<Record<string, unknown>>).find(c => c.Key === 'Title');
         const title = ((titleCell?.Value as string) || '').trim();
