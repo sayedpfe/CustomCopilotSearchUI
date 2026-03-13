@@ -1,15 +1,12 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { SPHttpClient } from '@microsoft/sp-http';
 
 /**
  * Autocomplete service using two strategies:
  *  1. /_api/search/suggest  — historical popular queries (requires tenant query analytics)
  *  2. /_api/search/query    — wildcard prefix search on content titles (always works)
  *
- * Strategy 1 is tried first; if it returns no results (common on lower-activity tenants),
- * strategy 2 provides suggestions from actual document/page titles.
- *
- * No extra license required — both APIs are built into SharePoint Online.
+ * Uses native fetch() with credentials:'same-origin' to avoid SPHttpClient
+ * adding a conflicting Accept header on top of our own.
  */
 export class SearchSuggestService {
   private context: WebPartContext;
@@ -37,7 +34,6 @@ export class SearchSuggestService {
    */
   private async fetchFromSuggestApi(query: string, count: number): Promise<string[]> {
     try {
-      // Single quotes must remain literal (unencoded) — only encode the content inside them
       const encodedQuery = `'${encodeURIComponent(query)}'`;
       const url =
         `${this.context.pageContext.web.absoluteUrl}/_api/search/suggest` +
@@ -45,16 +41,19 @@ export class SearchSuggestService {
         `&numberOfQuerySuggestions=${count}` +
         `&numberOfPersonalResults=0`;
 
-      const response = await this.context.spHttpClient.get(
-        url,
-        SPHttpClient.configurations.v1,
-        { headers: { Accept: 'application/json;odata=verbose' } }
-      );
+      // Use native fetch so we have sole control over the Accept header.
+      // SPHttpClient.configurations.v1 injects its own Accept header which
+      // conflicts with ours and causes SharePoint to return 'ACCEPT invalid'.
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json;odata=verbose' }
+      });
       if (!response.ok) return [];
 
       const data = await response.json() as Record<string, unknown>;
 
-      // Verbose: { d: { suggest: { Queries: { results: [{ Query: string, IsPersonal: bool }] } } } }
+      // Verbose: { d: { suggest: { Queries: { results: [{ Query: string }] } } } }
       const d = data?.d as Record<string, unknown> | undefined;
       const suggest = d?.suggest as Record<string, unknown> | undefined;
       const queriesObj = suggest?.Queries as Record<string, unknown> | undefined;
@@ -77,8 +76,6 @@ export class SearchSuggestService {
    */
   private async fetchFromWildcardSearch(query: string, count: number): Promise<string[]> {
     try {
-      // Wildcard must be INSIDE the single quotes: querytext='term*'
-      // Only encode the inner content, keep surrounding single quotes literal
       const encodedQuery = `'${encodeURIComponent(query)}*'`;
       const url =
         `${this.context.pageContext.web.absoluteUrl}/_api/search/query` +
@@ -87,16 +84,16 @@ export class SearchSuggestService {
         `&selectproperties='Title'` +
         `&startrow=0`;
 
-      const response = await this.context.spHttpClient.get(
-        url,
-        SPHttpClient.configurations.v1,
-        { headers: { Accept: 'application/json;odata=verbose' } }
-      );
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json;odata=verbose' }
+      });
       if (!response.ok) return [];
 
       const data = await response.json() as Record<string, unknown>;
 
-      // verbose: { d: { query: { PrimaryQueryResult: { RelevantResults: { Table: { Rows: { results: [{ Cells: { results: [...] } }] } } } } } } }
+      // Verbose: { d: { query: { PrimaryQueryResult: { RelevantResults: { Table: { Rows: { results: [{Cells:{results:[...]}}] } } } } } } }
       const d = data?.d as Record<string, unknown> | undefined;
       const queryObj = d?.query as Record<string, unknown> | undefined;
       const primary = queryObj?.PrimaryQueryResult as Record<string, unknown> | undefined;
