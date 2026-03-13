@@ -404,8 +404,8 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
             </div>
           )}
 
-          {/* Spell correction banner */}
-          {spellingSuggestion && !resultsLoading && (
+          {/* Spell correction banner — only shown when there ARE results (zero-results case handled in noResults block below) */}
+          {spellingSuggestion && !resultsLoading && displayedResults.length > 0 && (
             <div className={styles.spellBanner}>
               {spellingSuggestion.type === 'Modification' ? (
                 <>
@@ -588,6 +588,18 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
           {!(resultsLoading || filteredLoading) && displayedResults.length === 0 && !aiLoading && (
             <div className={styles.noResults}>
               No results found for &quot;{query}&quot;. Try different keywords.
+              {spellingSuggestion && (
+                <div className={styles.spellBanner} style={{ marginTop: 12 }}>
+                  Did you mean{' '}
+                  <button
+                    className={styles.spellBannerLink}
+                    onClick={() => onSearch(spellingSuggestion.alteredQuery)}
+                  >
+                    {spellingSuggestion.alteredQuery}
+                  </button>
+                  ?
+                </div>
+              )}
             </div>
           )}
 
