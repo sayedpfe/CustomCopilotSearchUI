@@ -1,6 +1,6 @@
 {
   "name": "bosch-search-extensions",
-  "version": "1.18.3",
+  "version": "1.18.4",
   "private": true,
   "engines": {
     "node": ">=18.17.1 <19.0.0"

@@ -540,7 +540,7 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
             </div>
           )}
 
-          {!(resultsLoading || filteredLoading) && displayedResults.length === 0 && !aiLoading && (
+          {!(resultsLoading || filteredLoading) && displayedResults.length === 0 && (
             <div className={styles.noResults}>
               No results found for &quot;{query}&quot;. Try different keywords.
               {spellingSuggestion && (
