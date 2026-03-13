@@ -37,7 +37,8 @@ export class SearchSuggestService {
    */
   private async fetchFromSuggestApi(query: string, count: number): Promise<string[]> {
     try {
-      const encodedQuery = encodeURIComponent(`'${query}'`);
+      // Single quotes must remain literal (unencoded) — only encode the content inside them
+      const encodedQuery = `'${encodeURIComponent(query)}'`;
       const url =
         `${this.context.pageContext.web.absoluteUrl}/_api/search/suggest` +
         `?querytext=${encodedQuery}` +
@@ -76,8 +77,9 @@ export class SearchSuggestService {
    */
   private async fetchFromWildcardSearch(query: string, count: number): Promise<string[]> {
     try {
-      // Build: querytext='term*' wrapped in single quotes, asterisk unencoded for prefix matching
-      const encodedQuery = encodeURIComponent(`'${query}'`) + '*';
+      // Wildcard must be INSIDE the single quotes: querytext='term*'
+      // Only encode the inner content, keep surrounding single quotes literal
+      const encodedQuery = `'${encodeURIComponent(query)}*'`;
       const url =
         `${this.context.pageContext.web.absoluteUrl}/_api/search/query` +
         `?querytext=${encodedQuery}` +
