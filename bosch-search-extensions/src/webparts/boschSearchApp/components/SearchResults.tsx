@@ -126,13 +126,17 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
 
     const run = async (): Promise<void> => {
       abortRef.current = false;
+
+      // Fire AI answer independently — do NOT await it here so spell check
+      // can run as soon as search results return (not after a 30s stream).
+      void fetchAiAnswer();
+
       await Promise.all([
-        fetchAiAnswer(),
         fetchSearchResults(0),
         fetchPromotedResults(),
       ]);
-      // Spell check runs in parallel as a lightweight background call.
-      // Uses the Graph Search queryAlterationOptions feature — no extra license needed.
+
+      // Spell check fires right after search results load — fast, non-blocking.
       if (!abortRef.current && graphClient) {
         const graphSearch = new GraphSearchService(graphClient);
         graphSearch.checkSpelling(query)
@@ -170,71 +174,22 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
         const chatService = new CopilotChatService(graphClient);
         const enableWeb = groundingMode === 'web' || groundingMode === 'both';
 
-        // Try streaming first (text appears in ~2-3s), fall back to sync if it fails
-        let streamingWorked = false;
-        try {
-          await chatService.askSingleQuestionStream(
-            query,
-            {
-              onChunk: (textSoFar) => {
-                if (abortRef.current) return;
-                streamingWorked = true;
-                setAiAnswer(textSoFar);
-                setAiSource('copilot-chat');
-                setAiLoading(false); // Hide spinner as soon as first chunk arrives
-              },
-              onDone: (fullText, attributions) => {
-                if (abortRef.current) return;
-                setAiAnswer(fullText);
-                setAiCitations(
-                  attributions
-                    .filter((a) => a.url)
-                    .map((attr, i) => ({
-                      index: i + 1,
-                      title: attr.title || 'Source',
-                      url: attr.url || '',
-                      snippet: '',
-                    }))
-                );
-              },
-              onError: (err) => {
-                if (!abortRef.current) {
-                  console.error('[SearchResults] Copilot stream error:', err);
-                }
-              },
-            },
-            enableWeb
+        // Use sync /chat endpoint — chatOverStream blocks Promise.all and delays
+        // spell check + search results by the full stream duration (~30-40s).
+        const result = await chatService.askSingleQuestion(query, enableWeb);
+        if (!abortRef.current) {
+          setAiAnswer(result.responseText);
+          setAiSource('copilot-chat');
+          setAiCitations(
+            result.attributions
+              .filter((a) => a.url)
+              .map((attr, i) => ({
+                index: i + 1,
+                title: attr.title || 'Source',
+                url: attr.url || '',
+                snippet: '',
+              }))
           );
-        } catch (streamErr) {
-          console.warn('[SearchResults] Streaming threw:', streamErr);
-        }
-
-        // If streaming failed (no chunks arrived), fall back to sync chat API
-        if (!streamingWorked && !abortRef.current) {
-          console.log('[SearchResults] Streaming did not produce chunks, falling back to sync chat API');
-          try {
-            const result = await chatService.askSingleQuestion(query, enableWeb);
-            if (!abortRef.current) {
-              setAiAnswer(result.responseText);
-              setAiSource('copilot-chat');
-              setAiCitations(
-                result.attributions
-                  .filter((a) => a.url)
-                  .map((attr, i) => ({
-                    index: i + 1,
-                    title: attr.title || 'Source',
-                    url: attr.url || '',
-                    snippet: '',
-                  }))
-              );
-            }
-          } catch (syncErr) {
-            console.error('[SearchResults] Sync chat also failed:', syncErr);
-            if (!abortRef.current) {
-              setAiAnswer('Unable to get Copilot response. Please try again.');
-              setAiSource('copilot-chat');
-            }
-          }
         }
         return;
       } else {

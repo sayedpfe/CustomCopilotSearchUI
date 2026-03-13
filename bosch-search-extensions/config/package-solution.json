@@ -3,7 +3,7 @@
   "solution": {
     "name": "bosch-search-extensions-client-side-solution",
     "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "version": "1.18.2.0",
+    "version": "1.18.3.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -30,7 +30,7 @@
         "title": "Bosch Search Extensions",
         "description": "Custom search web parts for Bosch Enterprise Search",
         "id": "b1c2d3e4-f5a6-7890-bcde-f12345678901",
-        "version": "1.18.2.0"
+        "version": "1.18.3.0"
       }
     ],
     "webApiPermissionRequests": [
